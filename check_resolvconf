@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+open FILE, "</etc/resolv.conf";
+my @resolvconf = <FILE>;
+
+my $failcount = 0;
+
+my $re1='(nameserver)';    # Word
+my $re2='(\\s+)';  # White Space
+
+my $ns_available;
+my @missing_ns;
+
+foreach my $ns (@ARGV) {
+  my $ns_re = $ns;
+  $ns_re =~ s/\./\\\\\./;
+  my $re3=$ns;
+
+  my $re=$re1.$re2.$re3;
+  $ns_available = 0;
+  for my $line (@resolvconf){
+    if ($line =~ m/$re/is){
+      $ns_available = 1;
+      last;
+    }
+  }
+  if (!$ns_available){
+    $failcount++;
+    push(@missing_ns, $ns);
+  }
+}
+
+my $missing_ns = join(', ', @missing_ns);
+my $number_ns = scalar(@ARGV);
+
+if ($failcount >= $number_ns){
+  print "RESOLVCONF CRITICAL - all nameservers are missing: $missing_ns\n";
+  exit(2);
+}
+
+if (0 < $failcount and $failcount < $number_ns){
+  print "RESOLVCONF WARNING - some nameservers are missing: $missing_ns\n";
+  exit(1);
+}
+
+if ($failcount == 0){
+  print "RESOLVCONF OK - no nameservers are missing\n";
+  exit(0);
+}
+
+print "RESOLVCONF UNKNOWN\n";
+exit(3);
