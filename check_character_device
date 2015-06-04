@@ -1,0 +1,27 @@
+#! /bin/bash
+#
+# Author : Diego Martin Gardella [dgardella@gmail.com]
+# Desc : Plugin to verify if a file exists
+#
+#
+
+PROGNAME=`basename $0`
+PROGPATH=`echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,'`
+
+#. $PROGPATH/utils.sh
+
+if [ "$1" = "" ]
+then
+	echo -e " Use : $PROGNAME <file_name> -- Ex : $PROGNAME /etc/hosts \n "
+	exit 3
+fi
+
+
+if [ -c $1 ]
+then
+	echo "OK - $1 : EXISTS" # shows the first three lines of the file
+	exit 0
+else
+	echo "CRITICAL : $1 Does NOT exists "
+	exit 2
+fi

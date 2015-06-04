@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my $re1='(    )';	# White Space 1
+my $re2='(inet)';	# Word 1
+my $re3='( )';	# White Space 2
+my $re4='((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))(?![\\d])';	# IPv4 IP Address 1
+my $re5='(\\/20)';	# Unix Path 1
+my $re6='( )';	# White Space 3
+my $re7='(brd)';	# Variable Name 1
+my $re8='( )';	# White Space 4
+my $re9='(10\\.42\\.15\\.255)';	# IPv4 IP Address 2
+
+my $re=$re1.$re2.$re3.$re4.$re5.$re6.$re7.$re8.$re9;
+
+my @ret_ip = `ip a`;
+
+foreach my $line (@ret_ip){
+    if ($line =~ m/$re/is)
+    {
+         my $ws1=$1;
+         my $word1=$2;
+         my $ws2=$3;
+         my $ipaddress1=$4;
+         my $cidr=$5;
+         my $ws3=$6;
+         my $var1=$7;
+         my $ws4=$8;
+         my $ipaddress2=$9;
+         #print "($ws1) ($word1) ($ws2) ($ipaddress1) ($cidr) ($ws3) ($var1) ($ws4) ($ipaddress2) \n";
+         print "IPCONFIG OK - $ipaddress1$cidr\n";
+	 exit(0);
+    } 
+}
+
+print "IPCONFIG CRITICAL\n";
+exit(2);
+

@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my @ret_lsusb = `lsusb`;
+
+my $usb_id = $ARGV[0]; 
+
+foreach my $line (@ret_lsusb){
+  if ($line =~ m/Bus \d\d\d Device \d\d\d: ID $usb_id .*/){
+    print "USBDEVICE OK - $line";
+    exit(0);
+  }
+}
+
+print "USBDEVICE CRITICAL - usbdevice $usb_id was not found";
+exit(2);
+

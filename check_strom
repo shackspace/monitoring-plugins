@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+#
+# Strom Fu. Perl Script
+# Author: Kalisto
+#
+#1-0:32.7.0*255(233.26*V)
+#1-0:52.7.0*255(232.59*V)
+#1-0:72.7.0*255(234.36*V)
+#1-0:31.7.0*255(002.88*A)
+#1-0:51.7.0*255(002.74*A)
+#1-0:71.7.0*255(009.47*A)
+#1-0:21.7.0*255(+00510*W)
+#1-0:41.7.0*255(+00488*W)
+#1-0:61.7.0*255(+01702*W)
+#
+#
+use warnings;
+use strict;
+
+my $volt_warn = $ARGV[0];
+my $volt_crit = $ARGV[1];
+
+my $amp_warn = $ARGV[2];
+my $amp_crit = $ARGV[3];
+
+my $watt_warn = $ARGV[4];
+my $watt_crit = $ARGV[5];
+
+my @volts;
+my @amps;
+my @watts;
+
+my $crit_cnt = 0;
+my $warn_cnt = 0;
+
+my @nc_ret = `nc powerraw.shack 11111`;
+
+
+foreach my $line (@nc_ret){
+    if ($line =~ m/1-0:32\.7\.0\*255\(([0-9]+\.[0-9]+)\*V\)/){
+        push(@volts,$1); 
+    }
+    if ($line =~ m/1-0:52\.7\.0\*255\(([0-9]+\.[0-9]+)\*V\)/){
+        push(@volts,$1); 
+    }
+    if ($line =~ m/1-0:72\.7\.0\*255\(([0-9]+\.[0-9]+)\*V\)/){
+        push(@volts,$1); 
+    }
+    if ($line =~ m/1-0:31\.7\.0\*255\(([0-9]+\.[0-9]+)\*A\)/){
+        push(@amps,$1); 
+    }
+    if ($line =~ m/1-0:51\.7\.0\*255\(([0-9]+\.[0-9]+)\*A\)/){
+        push(@amps,$1);
+    }
+    if ($line =~ m/1-0:71\.7\.0\*255\(([0-9]+\.[0-9]+)\*A\)/){
+        push(@amps,$1); 
+    }
+    if ($line =~ m/1-0:21\.7\.0\*255\(\+([0-9]+)\*W\)/){
+        push(@watts, $1); 
+    }
+    if ($line =~ m/1-0:41\.7\.0\*255\(\+([0-9]+)\*W\)/){
+        push(@watts, $1); 
+    }
+    if ($line =~ m/1-0:61\.7\.0\*255\(\+([0-9]+)\*W\)/){
+        push(@watts, $1); 
+    }
+}
+
+for(my $i = 0; $i < $#volts +1 ; $i++){
+    if($volts[$i] >= $volt_crit){
+        print "Critical Voltage on Phase " , $i+1 , " with $volts[$i] V! ";
+        $crit_cnt = 1;  
+    }elsif($volts[$i] >= $volt_warn){
+        print("Warning Voltage on Phase " , $i+1 ,  " with $volts[$i] V! ");
+        $warn_cnt = 1;
+    }else{
+        print("OK Voltage on Phase " , $i+1 , " with $volts[$i] V ");
+    }
+}
+for(my $i = 0; $i < $#amps +1 ; $i++){
+    if($amps[$i] >= $amp_crit){
+        print("Critical Ampere on Phase " , $i+1 , " with $amps[$i] A! ");
+        $crit_cnt = 1;  
+    }elsif($amps[$i] >= $amp_warn){
+        print("Warning Ampere on Phase " , $i+1 , " with $amps[$i] A! ");
+        $warn_cnt = 1;
+    }else{
+        print("OK Ampere on Phase ", $i+1 , " with $amps[$i] A ");
+    }
+}
+for(my $i = 0; $i < $#watts +1 ; $i++){
+    if($watts[$i] >= $watt_crit){
+        print("Critical Watt on Phase " , $i+1 , " with $watts[$i] W! ");
+        $crit_cnt = 1;  
+    }elsif($watts[$i] >= $watt_warn){
+        print("Warning Watt on Phase " , $i+1 , " with $watts[$i] W! ");
+        $warn_cnt = 1;
+    }else{
+        print("OK Watt on Phase ", $i+1 , " with $watts[$i] W ");
+    }
+}
+
+print("|Volt Phase 1=$volts[0];$volt_warn;$volt_crit Volt Phase 2=$volts[1];$volt_warn;$volt_crit Volt Phase 3=$volts[2];$volt_warn;$volt_crit Amp Phase 1=$amps[0];$amp_warn;$amp_crit Amp Phase 2=$amps[1];$amp_warn;$amp_crit Amp Phase 3=$amps[2];$amp_warn;$amp_crit Watt Phase 1=$watts[0];$watt_warn;$watt_crit Watt Phase 2=$watts[1];$watt_warn;$watt_crit Watt Phase 3=$watts[2];$watt_warn;$watt_crit");
+
+
+if($crit_cnt > 0){
+    exit(2);
+}elsif($warn_cnt > 0){
+    exit(1);
+}else{
+    exit(0);
+}
