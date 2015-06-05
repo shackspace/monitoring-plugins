@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+require HTTP::Request;
+require LWP::UserAgent;
+
+my $request = HTTP::Request->new(GET => 'http://openhab.shack/power/1');
+
+my $ua = LWP::UserAgent->new;
+my $response = $ua->request($request);
+my $content = $response->content;
+
+use JSON qw( decode_json );
+#use Data::Dumper;
+
+my $decoded_json = decode_json( $content );
+my $state = $decoded_json->{"state"};
+
+if ($state eq "on"){
+  print "POWER OK - $content\n";
+  exit(0);
+}
+
+if ($state eq "off"){
+  print "POWER CRITICAL - $content\n";
+  exit(0);
+}
+
+print "POWER UNKNOWN - $content\n";
+exit(3);
+
