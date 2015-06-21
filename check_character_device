@@ -9,9 +9,9 @@ fi
 
 if [ -c $1 ]
 then
-	echo "OK - $1 : EXISTS"
+	echo "OK : $1 is a character device"
 	exit 0
 else
-	echo "CRITICAL : $1 Does NOT exists "
+	echo "CRITICAL : $1 is NOT a character device"
 	exit 2
 fi
