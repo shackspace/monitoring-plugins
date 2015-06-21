@@ -1,0 +1,19 @@
+#! /bin/bash
+
+if [ "$1" = "" ]
+then
+	echo -e "Use : $0 <file_name>"
+	exit 3
+fi
+
+
+if [ -x $1 ]
+then
+	echo "OK : $1 is an executable file"
+	exit 0
+else
+	echo "CRITICAL : $1 is NOT an executable file"
+	exit 2
+fi
+
+exit 3
