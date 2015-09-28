@@ -9,7 +9,7 @@ __OPEN = 1
 __UNKNOWN = 2
 __ERROR = 3
 
-__STATE_STRING = {__CLOSE: "close",
+__STATE_STRING = {__CLOSE: "closed",
                   __OPEN: "open",
                   __UNKNOWN: "UNKNOWN",
                   __ERROR: "ERROR"}
