@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+
+import urllib.request
+import json
+import sys
+
+__CLOSE = 0
+__OPEN = 1
+__UNKNOWN = 2
+__ERROR = 3
+
+__STATE_STRING = {__CLOSE: "close",
+                  __OPEN: "open",
+                  __UNKNOWN: "UNKNOWN",
+                  __ERROR: "ERROR"}
+
+__NAGIOS_OK = 0
+__NAGIOS_WARNING = 1
+__NAGIOS_CRITICAL = 2
+__NAGIOS_UNKOWN = 3
+
+__NAGIOS_STRING = {__NAGIOS_OK: "OK",
+                   __NAGIOS_WARNING: "WRNING",
+                   __NAGIOS_CRITICAL: "CRITICAL",
+                   __NAGIOS_UNKOWN: "UKNOWN"}
+
+
+def get_shackspace_de():
+    try:
+        with urllib.request.urlopen('http://shackspace.de/sopen/text/en') as f:
+            status = f.read()
+            status = status.lower().strip().decode('utf-8')
+            if status == "open":
+                return __OPEN
+            if status == "closed":
+                return __CLOSE
+            if status == "unknown":
+                return __UNKNOWN
+            return __ERROR
+    except:
+        return __ERROR
+    return __ERROR
+
+
+def get_portal_shack():
+    try:
+        with urllib.request.urlopen('http://portal.shack:8088/status') as f:
+            ret = f.read().decode('utf-8')
+            status = json.loads(ret)
+            status = status["status"].lower()
+            if status == "open":
+                return __OPEN
+            if status == "closed":
+                return __CLOSE
+            if status == "unknown":
+                return __UNKNOWN
+            return __ERROR
+    except:
+        return __ERROR
+    return __ERROR
+
+
+def nagios_status(shackspace_de, portal_shack):
+    # order of if statements matters
+    if shackspace_de == __ERROR or portal_shack == __ERROR:
+        return __NAGIOS_UNKOWN
+
+    if shackspace_de == __UNKNOWN or portal_shack == __UNKNOWN:
+        return __NAGIOS_CRITICAL
+
+    if shackspace_de == portal_shack and shackspace_de in (__CLOSE, __OPEN):
+        return __NAGIOS_OK
+
+    if not shackspace_de == portal_shack:
+        return __NAGIOS_CRITICAL
+
+    return 4
+
+
+def nagios_string(returnval, shackspace_de, portal_shack):
+    string = "TUERSTATUS {}: shackspace.de is {} - portal.shack is {}"
+    return string.format(__NAGIOS_STRING[returnval],
+                         __STATE_STRING[shackspace_de],
+                         __STATE_STRING[portal_shack])
+
+
+def main():
+    shackspace_de = get_shackspace_de()
+    portal_shack = get_portal_shack()
+
+    returnval = nagios_status(shackspace_de, portal_shack)
+
+    print(nagios_string(returnval, shackspace_de, portal_shack))
+
+    return returnval
+
+
+if __name__ == "__main__":
+    exitcode = main()
+    sys.exit(exitcode)
