@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import requests
+import json
+import sys
+
+
+__NAGIOS_OK = 0
+__NAGIOS_WARNING = 1
+__NAGIOS_CRITICAL = 2
+__NAGIOS_UNKOWN = 3
+
+__NAGIOS_STRING = {__NAGIOS_OK: "OK",
+                   __NAGIOS_WARNING: "WRNING",
+                   __NAGIOS_CRITICAL: "CRITICAL",
+                   __NAGIOS_UNKOWN: "UKNOWN"}
+
+
+URL = "http://netinfo.freifunk-stuttgart.de/map/json/global_map.json"
+ID = "52:54:00:4d:33:95"
+
+
+def check_freifunknode():
+    try:
+        r = requests.get(URL)
+        if not r.status_code == 200:
+            return __NAGIOS_ERROR, "Bad HTML status code: {}".format(r.status_code)
+        content = r.content
+        content = content.decode('utf-8')
+        status = json.loads(content)
+        nodes = status['nodes']
+        nodes = [x for x in nodes if x['id'] == ID]
+        node = nodes[0]
+        status = node["status"]
+        online = status["online"]
+        clients = status["clients"]
+
+        if online:
+            nagios_status = __NAGIOS_OK
+        else:
+            nagios_status = __NAGIOS_CRITICAL
+
+        return nagios_status, "freifunknode {}|clients={};;;;".format(__NAGIOS_STRING[nagios_status], clients)
+    except:
+         return __NAGIOS_UNKOWN, "freifunknode {}".format(__NAGIOS_STRING[__NAGIOS_UNKOWN])
+    return __NAGIOS_UNKOWN, "freifunknode {}".format(__NAGIOS_STRING[__NAGIOS_UNKOWN])
+
+
+if __name__ == "__main__":
+    exitcode, msg = check_freifunknode()
+    print(msg)
+    sys.exit(exitcode)

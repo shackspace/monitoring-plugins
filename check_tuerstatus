@@ -34,7 +34,7 @@ def get_shackspace_de():
                 return __OPEN
             if status == "closed":
                 return __CLOSE
-            if status == "unknown":
+            if status == "no data":
                 return __UNKNOWN
             return __ERROR
     except:
